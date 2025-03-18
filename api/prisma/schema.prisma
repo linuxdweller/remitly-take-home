@@ -1,0 +1,35 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model transactions {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  status    Status
+  amount    Decimal  @db.Decimal(32, 8)
+  from      users    @relation("sent", fields: [fromId], references: [id], onDelete: Cascade)
+  fromId    Int
+  to        users    @relation("received", fields: [toId], references: [id], onDelete: Cascade)
+  toId      Int
+  @@index   ([fromId])
+  @@index   ([toId])
+}
+
+model users {
+  id           Int      @id @default(autoincrement())
+  balance      Decimal  @db.Decimal(32, 8)
+  email        String   @db.VarChar(255) @unique
+  password     String   @db.VarChar(255)
+  transactionsReceived transactions[] @relation("received")
+  transactionsSent     transactions[] @relation("sent")
+}
+
+enum Status {
+  accepted
+  rejected
+}

@@ -1,0 +1,46 @@
+services:
+  cloudflared:
+    image: cloudflare/cloudflared:2025.2.1
+    command: tunnel run
+    environment:
+      TUNNEL_TOKEN: "{{ cloudflare_tunnel_token }}"
+  redis:
+    image: redis:7.4.2-alpine
+  postgres:
+    image: postgres:17.4-alpine
+    environment:
+      POSTGRES_PASSWORD: dev
+    volumes:
+      - /var/lib/postgresql/data
+  rabbitmq:
+    image: rabbitmq:4.0.7-alpine
+    ports:
+      - 127.0.0.1:5672:5672
+    healthcheck:
+      test: ["CMD", "rabbitmqctl", "node_health_check"]
+      interval: 10s
+      timeout: 5s
+  api:
+    build: api
+    environment:
+      DATABASE_URL: "postgresql://postgres:dev@postgres:5432/api"
+      AMQP_URL: "amqp://guest:guest@rabbitmq:5672"
+      PROMETHEUS_EXPORTER_PORT: 9464
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    volumes:
+      - ./api/secret:/app/secret
+    develop:
+      watch:
+        - action: sync+restart
+          path: ./api
+          target: /api
+  transaction-consumer:
+    build: transactionConsumer
+    environment:
+      AMQP_URL: "amqp://guest:guest@rabbitmq:5672"
+      DATABASE_URL: "postgresql://postgres:dev@postgres:5432/api"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy

@@ -1,0 +1,20 @@
+{
+	"transactions": [
+		{
+			"id": 1,
+			"createAt": "2025-03-17T20:37:27.690Z",
+			"status": "accepted",
+			"amount": 500,
+			"fromId": 3,
+			"toId": 5
+		},
+		{
+			"id": 1,
+			"createAt": "2025-03-17T20:37:27.690Z",
+			"status": "rejected",
+			"amount": 500,
+			"fromId": 3,
+			"toId": 5
+		}
+	]
+}

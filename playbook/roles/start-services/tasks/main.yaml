@@ -1,0 +1,33 @@
+---
+- name: Clone application repo
+  delegate_to: localhost
+  ansible.builtin.git:
+   repo: "git@github.com:linuxdweller/remitly-take-home.git"
+   dest: /tmp/remitly-take-home
+
+- name: App directory is present
+  ansible.builtin.file:
+    state: directory
+    path: "/home/amit/remitly-take-home"
+
+- name: App is present
+  ansible.posix.synchronize:
+    src: /tmp/remitly-take-home
+    dest: /home/amit/
+
+- name: Compose file is present
+  ansible.builtin.template:
+    src: docker-compose.yaml
+    dest: /home/amit/remitly-take-home
+
+- name: JWT private key is present
+  ansible.builtin.copy:
+    src: "{{ playbook_dir }}/../api/secret/id_ed25519"
+    dest: /home/amit/remitly-take-home/api/secret
+  become: true
+
+- name: Start app services
+  community.docker.docker_compose_v2:
+    project_src: /home/amit/remitly-take-home
+    build: always
+  become: true

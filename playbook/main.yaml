@@ -1,0 +1,8 @@
+---
+- name: Main
+  hosts: debian
+  roles:
+    - role: configure
+    - role: start-services
+      vars:
+        cloudflare_tunnel_token: '{{ lookup("env", "CLOUDFLARE_TUNNEL_TOKEN") }}'
